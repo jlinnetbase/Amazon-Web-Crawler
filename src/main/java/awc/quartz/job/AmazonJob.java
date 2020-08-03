@@ -1,98 +1,58 @@
 package awc.quartz.job;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import awc.AmazonScheduler;
-import awc.csv.Review;
-import awc.ReviewProcessor;
-import awc.csv.Entry;
+import awc.crawler.MyAmazonCrawler;
 import awc.dataparser.AmazonDataParser;
-import awc.dataparser.DataParser;
+import awc.jobrepo.BasicAmazonJobRepo;
+import awc.jobrepo.JobRepo;
 
-public class AmazonJob implements Job {
-
+public class AmazonJob implements Job
+{
+    private static final Logger LOG = LoggerFactory.getLogger(AmazonJob.class);
     private static final String baseURL = "https://nlp.netbase.com/sentiment?languageTag=en&mode=index&syntax=twitter&text=";
 
-    public void execute(JobExecutionContext context) throws JobExecutionException {
+    public void execute (JobExecutionContext context)
+    {
+        JobRepo jobRepo = BasicAmazonJobRepo.getInstance();
 
-        String url = AmazonScheduler.list.removeFirst();
+        String url = jobRepo.getNextLink();
+        while (url == null) {
+            try {
+                Thread.sleep(2000L);
+            }
+            catch (InterruptedException ie) {
+                ie.printStackTrace();
+            }
+            url = jobRepo.getNextLink();
+        }
 
-        AmazonScheduler.visited.add(url);
+        LOG.info(String.format("Received URL: %s", url));
+
+        jobRepo.visited(url);
 
         // read in the files (from amazon, myself?)
+        MyAmazonCrawler mac = new MyAmazonCrawler();
+        Optional<String> optionalHtml = mac.crawl(url);
 
-        String html = "";
-
-
-        URL urlRequest = null;
-        try {
-            urlRequest = new URL(url);
-            HttpURLConnection con = (HttpURLConnection) urlRequest.openConnection();
-            con.setRequestMethod("GET");
-
-            int status = con.getResponseCode();
-
-            // read in the output
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer content = new StringBuffer();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-            }
-            in.close();
-            con.disconnect();
-            html = content.toString();
-            System.out.println(html);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (optionalHtml.isPresent()) {
+            AmazonDataParser adp = new AmazonDataParser(optionalHtml.get());
+            List<String> outgoingLinks = adp.extractOutgoingLinks();
+            LOG.info(String.format("Outgoing links: %s", outgoingLinks.toString()));
+            jobRepo.addLinks(outgoingLinks);
         }
-
-
-
-        DataParser parser = new AmazonDataParser(html);
-        html.replaceAll("[ \t\n\r]+","\n");
-
-        Pattern p = Pattern.compile("https://www.amazon.com/");
-
-        Matcher match = p.matcher(html);
-
-
-        while (match.find()) {
-            StringBuffer buff = new StringBuffer();
-            buff.append("https://www.amazon.com/");
-            int idx = match.end();
-            while (idx < html.length() && html.charAt(idx) != ')' && html.charAt(idx) != '\'' && html.charAt(idx) != '\"' && html.charAt(idx) != '?') {
-                buff.append(html.charAt(idx));
-                idx++;
-            }
-            String outgoingURL = buff.toString();
-            if (outgoingURL.contains("/dp/") && !AmazonScheduler.list.contains(outgoingURL)) {
-                AmazonScheduler.list.add(outgoingURL);
-            }
+        else {
+            LOG.info(String.format("Can't crawl %s", url));
         }
+    }
 
-
-//            int num = 0;
-//            try {
-//                PrintWriter writer = new PrintWriter(new FileWriter(new File("amazon_test.txt")));
-//                writer.println(html.length());
-//                writer.println(html);
-//                writer.flush();
-//                writer.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+    /*
 
         Entry pageEntry = new Entry();
         pageEntry.set("RECORD_ID", "page");
@@ -155,9 +115,7 @@ public class AmazonJob implements Job {
             AmazonScheduler.writer.println(reviewEntry);
             AmazonScheduler.writer.flush();
         }
-
-
-    }
+     */
 }
 
 

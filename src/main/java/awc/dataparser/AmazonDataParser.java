@@ -24,6 +24,7 @@ public class AmazonDataParser extends DataParser
     static final Pattern altImagesHeaderPattern = Pattern.compile("<div id=\"altImages\"[^>]+>");
     static final Pattern altImageHeaderPattern = Pattern.compile("<li class=\"a-spacing-small item\">");
     static final Pattern URLPattern = Pattern.compile("href=\"");
+    static final Pattern p = Pattern.compile("https://www.amazon.com/");
 
     private String title;
     private double price;
@@ -209,6 +210,28 @@ public class AmazonDataParser extends DataParser
             }
         }
         return price;
+    }
+
+    public List<String> extractOutgoingLinks ()
+    {
+        String html = super.getHtml().replaceAll("[ \t\n\r]+", "\n");
+        Matcher match = p.matcher(html);
+        List<String> outgoingLinks = new ArrayList<>();
+
+        while (match.find()) {
+            StringBuffer buff = new StringBuffer();
+            buff.append("https://www.amazon.com/");
+            int idx = match.end();
+            while (idx < html.length() && html.charAt(idx) != ')' && html.charAt(idx) != '\''
+                    && html.charAt(idx) != '\"' && html.charAt(idx) != '?') {
+                buff.append(html.charAt(idx));
+                idx++;
+            }
+            String outgoingURL = buff.toString();
+            outgoingLinks.add(outgoingURL);
+        }
+
+        return outgoingLinks;
     }
 
 }
