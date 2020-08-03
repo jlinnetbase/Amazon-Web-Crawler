@@ -1,3 +1,5 @@
+package awc;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -5,6 +7,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+
+import awc.csv.Entry;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestEntry {

@@ -7,6 +7,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Web Crawler" />
+        <module name="amazon-web-crawler" />
       </profile>
     </annotationProcessing>
   </component>

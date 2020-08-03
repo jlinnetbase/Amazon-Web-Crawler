@@ -1,3 +1,5 @@
+package awc;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,6 +9,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import awc.csv.Entry;
+import awc.csv.Review;
+import awc.ReviewProcessor;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestReviewProcessor {
@@ -23,7 +29,7 @@ public class TestReviewProcessor {
     public void testValidReview() {
         when(review.getRecordID()).thenReturn("testRecordID");
         when(review.getReviewDate()).thenReturn("July 26, 2020");
-        when(review.getReviewTitle()).thenReturn("Review Title");
+        when(review.getReviewTitle()).thenReturn("awc.csv.Review Title");
         when(review.getReviewURL()).thenReturn("https://www.amazon.com/");
         when(review.getReviewText()).thenReturn("reviewText");
         when(review.getName()).thenReturn("John Smith");
@@ -32,7 +38,7 @@ public class TestReviewProcessor {
         Entry e = ReviewProcessor.getSentiment(review, requestURL);
         assertEquals("testRecordID", e.get("RECORD_ID"));
         assertEquals("July 26, 2020", e.get("RECORD_DATETIME"));
-        assertEquals("Review Title", e.get("RECORD_TITLE"));
+        assertEquals("awc.csv.Review Title", e.get("RECORD_TITLE"));
         assertEquals("https://www.amazon.com/", e.get("RECORD_URL"));
         assertEquals("reviewText", e.get("RECORD_TEXT"));
         assertEquals("John Smith", e.get("AUTHOR_NAME"));

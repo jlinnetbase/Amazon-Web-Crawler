@@ -1,3 +1,10 @@
+package awc.crawler;
+
+import awc.csv.Entry;
+import awc.csv.Review;
+import awc.ReviewProcessor;
+import awc.dataparser.AmazonDataParser;
+import awc.dataparser.DataParser;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
@@ -8,13 +15,11 @@ import java.io.*;
 import java.net.URLEncoder;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 /**
- * The AmazonCrawler class constructs an Amazon Web Crawler that keeps track of the number of pages it has crawled through.
+ * The awc.crawlerzonCrawler class constructs an Amazon Web Crawler that keeps track of the number of pages it has crawled through.
  */
 public class AmazonCrawler extends WebCrawler {
 
@@ -31,7 +36,7 @@ public class AmazonCrawler extends WebCrawler {
 
     /**
      * Constructs a MyCrawler object.
-     * @param pages An AtomicInteger that keeps track of the number of pages visited by the crawler.
+     * @param pages An AtomicInteger that keeps track of the number of pages visited by the awc.crawler.
      */
     public AmazonCrawler(AtomicInteger pages, PrintWriter writer) {
         seenPages = pages;

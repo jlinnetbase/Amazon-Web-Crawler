@@ -1,15 +1,16 @@
+package awc;
+
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.regex.Pattern;
+
+import awc.csv.Entry;
+import awc.csv.Review;
 
 public class ReviewProcessor {
 

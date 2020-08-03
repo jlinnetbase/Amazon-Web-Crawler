@@ -1,10 +1,7 @@
-import edu.uci.ics.crawler4j.crawler.Page;
-import edu.uci.ics.crawler4j.crawler.WebCrawler;
-import edu.uci.ics.crawler4j.parser.HtmlParseData;
-import edu.uci.ics.crawler4j.url.WebURL;
-import org.apache.http.Header;
+package awc.crawler;
 
-import java.io.*;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
@@ -12,12 +9,23 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.json.simple.*;
+import org.apache.http.Header;
+
+import awc.csv.Entry;
+import awc.csv.Review;
+import awc.ReviewProcessor;
+import awc.dataparser.DataParser;
+import awc.dataparser.EbayDataParser;
+import edu.uci.ics.crawler4j.crawler.Page;
+import edu.uci.ics.crawler4j.crawler.WebCrawler;
+import edu.uci.ics.crawler4j.parser.HtmlParseData;
+import edu.uci.ics.crawler4j.url.WebURL;
 
 /**
- * The AmazonCrawler class constructs an Amazon Web Crawler that keeps track of the number of pages it has crawled through.
+ * The awc.AmazonCrawlerwler class constructs an Amazon Web Crawler that keeps track of the number of pages it has crawled through.
  */
-public class EbayCrawler extends WebCrawler {
+public class EbayCrawler extends WebCrawler
+{
 
     private static Pattern productIDPattern = Pattern.compile("itm/[^/]+/");
 
@@ -31,25 +39,29 @@ public class EbayCrawler extends WebCrawler {
 
     private PrintWriter writer;
 
-
     /**
      * Constructs a MyCrawler object.
-     * @param pages An AtomicInteger that keeps track of the number of pages visited by the crawler.
+     *
+     * @param pages An AtomicInteger that keeps track of the number of pages visited by the awc.crawler.
      */
-    public EbayCrawler(AtomicInteger pages, PrintWriter writer) {
+    public EbayCrawler (AtomicInteger pages, PrintWriter writer)
+    {
         seenPages = pages;
         this.writer = writer;
     }
 
     /**
      * Returns whether or not the specified URL should be visited, given the page it has been found in.
+     *
      * @param referringPage The page from which the specified URL was found.
-     * @param url The specified URL.
+     * @param url           The specified URL.
      * @return True if the URL should be visited, false otherwise.
      */
     @Override
-    public boolean shouldVisit(Page referringPage, WebURL url) {
-        if (referringPage == null || url == null || url.getURL() == null) return false;
+    public boolean shouldVisit (Page referringPage, WebURL url)
+    {
+        if (referringPage == null || url == null || url.getURL() == null)
+            return false;
         // atm referringPage isn't used, might be used later
         String href = url.getURL().toLowerCase();
 
@@ -57,20 +69,24 @@ public class EbayCrawler extends WebCrawler {
         return href.startsWith("https://www.ebay.com") && href.contains("/itm/"); // means its a product
     }
 
-    private static String encodeValue(String value) {
+    private static String encodeValue (String value)
+    {
         try {
             return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
-        } catch (UnsupportedEncodingException ex) {
+        }
+        catch (UnsupportedEncodingException ex) {
             throw new RuntimeException(ex.getCause());
         }
     }
 
     /**
      * Visits a web page.
+     *
      * @param page The page to be visited.
      */
     @Override
-    public void visit(Page page) {
+    public void visit (Page page)
+    {
 
         /* A lot of this website data isn't used right now, I'm in the process of going through these and figuring out exactly what they are.
          * For now, I'm just printing them out on the logger.
@@ -97,8 +113,7 @@ public class EbayCrawler extends WebCrawler {
 
             logger.debug("Pages visited: " + seenPages.incrementAndGet());
 
-
-            HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
+            HtmlParseData htmlParseData = (HtmlParseData)page.getParseData();
             String text = htmlParseData.getText();
             String html = htmlParseData.getHtml().trim();
 
@@ -112,9 +127,9 @@ public class EbayCrawler extends WebCrawler {
 
             logger.debug("Text length: {}", text.length());
             logger.debug("Html length: {}", html.length());
-//            logger.debug("Number of outgoing links: {}", links.size());
+            //            logger.debug("Number of outgoing links: {}", links.size());
 
-            html.replaceAll("[ \t\n\r]+","\n");
+            html.replaceAll("[ \t\n\r]+", "\n");
 
             Entry pageEntry = new Entry();
             pageEntry.set("RECORD_ID", "page" + seenPages);
@@ -155,7 +170,8 @@ public class EbayCrawler extends WebCrawler {
                 r.setProductID(productID);
                 if (r.getReviewText().length() > 1000) {
                     reviewText = r.getReviewText().substring(0, 1000); // truncate to 1000 characters
-                } else {
+                }
+                else {
                     reviewText = r.getReviewText();
                 }
                 r.setReviewText(reviewText);
@@ -164,7 +180,8 @@ public class EbayCrawler extends WebCrawler {
 
                 try {
                     Thread.sleep(1000);
-                } catch (Exception e) {
+                }
+                catch (Exception e) {
                     e.printStackTrace();
                 }
                 Entry reviewEntry = ReviewProcessor.getSentiment(r, requestURL);
@@ -182,8 +199,6 @@ public class EbayCrawler extends WebCrawler {
             for (String s : parser.getAlternateImages()) {
                 System.out.println(s);
             }
-
-
 
         }
 
